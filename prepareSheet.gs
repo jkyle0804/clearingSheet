@@ -22,9 +22,9 @@ function menuItem1() {
   var active = SpreadsheetApp.getActive();
   var sheet = active.getActiveSheet();
   var lastrow = sheet.getLastRow();
-  var stylehelper = ('A1:M' + lastrow)
+  var stylehelper = ('A1:N' + lastrow)
   var stylerange = active.getRange(stylehelper);
-  var approvalhelper = ('M2:M' + lastrow);
+  var approvalhelper = ('N2:N' + lastrow);
   var approvalrange = active.getRange(approvalhelper);
   var approvalvalidation = SpreadsheetApp.newDataValidation().requireValueInList(['Approved', 'Rejected'], true).build();
     stylerange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false);
@@ -78,21 +78,21 @@ function onEdit(e) {
   var targetTab = targetSheet.getSheetByName('Purchase Data');
   var lastRow = targetTab.getLastRow();
   var targetRow = lastRow+1;
-  var targetRange = targetTab.getRange(targetRow,1,1,12);
+  var targetRange = targetTab.getRange(targetRow,1,1,13);
   var deleteCount = 0;
   var source = SpreadsheetApp.getActive();
   var sourcesheet = source.getSheetByName('Clearing Sheet');
   var approvalsheet = source.getSheetByName('Approved Line Items');
-  var approvalrange = approvalsheet.getRange(approvalsheet.getLastRow()+1,1,1,12);
+  var approvalrange = approvalsheet.getRange(approvalsheet.getLastRow()+1,1,1,13);
   var rejectsheet = source.getSheetByName('Rejected Line Items');
-  var rejectrange = rejectsheet.getRange(rejectsheet.getLastRow()+1, 1, 1, 12);
-  var values = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),1,1,12).getValues();
+  var rejectrange = rejectsheet.getRange(rejectsheet.getLastRow()+1, 1, 1, 13);
+  var values = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
       // Approved condition moves active row to corresponding invoicinging sheet. IMPORTANT A1Notation moves row to corresponding row of target sheet
       if (sourcesheet.getSelection().getCurrentCell().getValue() == "Approved") {
         deleteCount++;
-        var approvedrange = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,12).getA1Notation();
+        var approvedrange = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getA1Notation();
         targetTab.getRange(approvedrange).setValues(values);
-        var approvedvalues = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,12).getValues();
+        var approvedvalues = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
         approvalrange.setValues(approvedvalues);
         //Logger.log('Called from approve if statement');
          /*if (deleteCount < 2) {sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());}
@@ -184,6 +184,8 @@ function mergeTransactionData(){
           var salesamount = ("=iferror(vlookup(RC[-2],SalesData!D:F,3,FALSE),0)");
           var returnscount = ("=iferror(vlookup(RC[-3],ReturnsData!D:F,2,FALSE),0)");
           var returnsamount = ("=iferror(vlookup(RC[-4],ReturnsData!D:F,3,FALSE),0)");
+          var reviewflag = ("=iferror(vlookup(RC[-5],SalesData!D:G,5,FALSE),0)");
+              clearingtab.getRange(i+2,clearinglastcolumn-5,1,1).setValue(reviewflag);
               clearingtab.getRange(i+2,clearinglastcolumn-4,1,1).setValue(salescount);
               clearingtab.getRange(i+2,clearinglastcolumn-3,1,1).setValue(salesamount);
               clearingtab.getRange(i+2,clearinglastcolumn-2,1,1).setValue(returnscount);

@@ -87,8 +87,10 @@ function onEdit(e) {
   var rejectsheet = source.getSheetByName('Rejected Line Items');
   var rejectrange = rejectsheet.getRange(rejectsheet.getLastRow()+1, 1, 1, 13);
   var values = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
+  var reviewcheck = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),13,1,1).getValue();
+  var statuscheck = sourcesheet.getSelection().getCurrentCell().getValue();
       // Approved condition moves active row to corresponding invoicinging sheet. IMPORTANT A1Notation moves row to corresponding row of target sheet
-      if (sourcesheet.getSelection().getCurrentCell().getValue() == "Approved") {
+      if (statuscheck == "Approved" && reviewcheck == "false") {
         deleteCount++;
         var approvedrange = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getA1Notation();
         targetTab.getRange(approvedrange).setValues(values);
@@ -108,14 +110,35 @@ function onEdit(e) {
             else {
             ui.alert("Don't forget to generate the invoice.");
             }
+    
+       if (statuscheck == "Approved" && reviewcheck == "true") {
+        deleteCount++;
+        var approvedrange = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getA1Notation();
+        targetTab.getRange(approvedrange).setValues(values);
+        var approvedvalues = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
+        approvalrange.setValues(approvedvalues);
+        //Logger.log('Called from approve if statement');
+         /*if (deleteCount < 2) {sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());}
+        Logger.log('Row number is ' + sourcesheet.getSelection().getCurrentCell().getRow());*/
+        var ui = SpreadsheetApp.getUi();
+        var dialog = ui.alert('Flagged for review.','After creating this invoice it must first be sent to Tom and Sebastian for approval. Click OK to open the invoice document.', ui.ButtonSet.YES_NO);
+          if (dialog == ui.Button.YES){
+              var url = "https://docs.google.com/spreadsheets/d/"+docid;
+              var html = "<script>window.open('" + url + "');google.script.host.close();</script>";
+              var userInterface = HtmlService.createHtmlOutput(html);
+                     SpreadsheetApp.getUi().showModalDialog(userInterface, "Opening Sheet");
+            }
+            else {
+            ui.alert("Don't forget to generate the invoice.");
+            }
     }
-       /* Reject condition moves the row to a rejected line items page where a new process begins
-       else if (sourcesheet.getSelection().getCurrentCell().getValue() == "Rejected") {
+       //Reject condition moves the row to a rejected line items page where a new process begins
+       if (statuscheck == "Rejected") {
         var rejectvalues =sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,12).getValues();
         rejectrange.setValues(rejectvalues);
-        sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());
-        
-    }*/
+        //sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());
+        }
+    }
 }
 function menuItem2() {
   var modal = HtmlService.createHtmlOutputFromFile('getPurchaseData')

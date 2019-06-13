@@ -89,18 +89,17 @@ function onEdit(e) {
   var values = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
   var reviewcheck = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),13,1,1).getValue();
   var statuscheck = sourcesheet.getSelection().getCurrentCell().getValue();
+  var activerow = sourcesheet.getActiveCell.getRow();
       // Approved condition moves active row to corresponding invoicinging sheet. IMPORTANT A1Notation moves row to corresponding row of target sheet
       if (statuscheck == "Approved" && reviewcheck == "false") {
         deleteCount++;
-        var approvedrange = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getA1Notation();
+        var approvedrange = sourcesheet.getRange(activerow,1,1,13).getA1Notation();
         targetTab.getRange(approvedrange).setValues(values);
-        var approvedvalues = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
+        var approvedvalues = sourcesheet.getRange(activerow,1,1,13).getValues();
         approvalrange.setValues(approvedvalues);
-        //Logger.log('Called from approve if statement');
-         /*if (deleteCount < 2) {sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());}
-        Logger.log('Row number is ' + sourcesheet.getSelection().getCurrentCell().getRow());*/
+
         var ui = SpreadsheetApp.getUi();
-        var dialog = ui.alert('Would you like to open the invoice document?', ui.ButtonSet.YES_NO);
+        var dialog = ui.alert('Click OK to open the invoice file', ui.ButtonSet.YES_NO);
           if (dialog == ui.Button.YES){
               var url = "https://docs.google.com/spreadsheets/d/"+docid;
               var html = "<script>window.open('" + url + "');google.script.host.close();</script>";

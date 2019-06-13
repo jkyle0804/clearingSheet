@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <base target="top">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+    <body>      
+        <form id="invoiceForm">
+         <fieldset>
+                  <input type = "number" id = "invoicenumber" name = "invoicenumber" style="width: 100%"> 
+          </fieldset>
+         </form> 
+         <br >
+         <input type="button" value="Ok "
+                onclick="setInvoiceNumber()" />
+
+         <input type="button" value="Cancel"
+                onclick="google.script.host.close()" />
+    
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
+        </script>
+        <script>
+        function setInvoiceNumber(){
+        //Retrieving form values
+        var invoicenumber = $('#invoicenumber').val();
+
+        google.script.run.withSuccessHandler(closeIt).getInvoiceNumber(invoicenumber);
+      }
+      function closeIt(){
+        google.script.host.close()
+      }
+      
+    </script>
+  </body>
+</html>
+
+

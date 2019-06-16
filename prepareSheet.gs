@@ -54,7 +54,7 @@ function menuItem1() {
       for ( var i = 0; i < lastrow-1; i++){
       for ( var j = 0 ; j < lastcolumn; j++){
           var uniqueid = ("=concatenate(RC[-7], RC[-5], RC[-3])");
-              sheet.getRange(i+2,lastcolumn-5,1,1).setValue(uniqueid);
+              sheet.getRange(i+2,lastcolumn-6,1,1).setValue(uniqueid);
     }   
   }
   var sourcetab = active.getSheetByName('Invoice Numbers');

@@ -30,8 +30,8 @@ function menuItem1() {
     stylerange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false);
     approvalrange.setDataValidation(approvalvalidation);
 // Add column headers for purchase and return data and add column header for approvals
-  var volumeheaders = sheet.getRange(1,7,1,8);
-  var headervalues = [[ "Invoice Number", "Unique ID", "Purchase Count", "Purchase Amount", "Return Count", "Return Amount", "Review","Approvals"]];
+  var volumeheaders = sheet.getRange(1,8,1,7);
+  var headervalues = [["Invoice Number", "Purchase Count", "Purchase Amount", "Return Count", "Return Amount", "Review","Approvals"]];
     volumeheaders.setValues(headervalues).setFontWeight('Bold');
 // Format Client Number column to six digits with leading zeroes
   var acctnumhelper = ('A2:A' + lastrow);
@@ -43,29 +43,22 @@ function menuItem1() {
     billcyclecolumn.setNumberFormat('@STRING@');
 // Assigns invoice number for each line item
   var invoicenumbertab = active.getSheetByName('Invoice Numbers');
-  var nextinvoicenumber = invoicenumbertab.getRange(2,2,1,1).getValue();
-  var newinvoicenumber = sheet.getRange(lastrow,7,1,1).getValue();
-    sheet.getRange(2,7,1,1).setValue(nextinvoicenumber);
+  var nextinvoicenumber = invoicenumbertab.getRange(2,1,1,1).getValue();
+  var newinvoicenumber = sheet.getRange(lastrow,8,1,1).getValue();
+    sheet.getRange(2,8,1,1).setValue(nextinvoicenumber);
 // Creates Unique ID for each line item to merge Sales and Returns data
   var lineitemdata = sheet.getDataRange();
   var lastcolumn = lineitemdata.getLastColumn();
   var searchrange = sheet.getRange(2,1,lastrow, lastcolumn);
-  var lineitemvalues = searchrange.getValues();
-      for ( var i = 0; i < lastrow-1; i++){
-      for ( var j = 0 ; j < lastcolumn; j++){
-          var uniqueid = ("=concatenate(RC[-7], RC[-5], RC[-3])");
-              sheet.getRange(i+2,lastcolumn-6,1,1).setValue(uniqueid);
-    }   
-  }
   var sourcetab = active.getSheetByName('Invoice Numbers');
   var targettab = active.getSheetByName('Clearing Sheet');
   var targettabdata = targettab.getDataRange();
   var invoicenumlastrow = targettab.getLastRow();
   var invoicenumlastcolumn = targettab.getLastColumn();
   var nextnumber = sourcetab.getRange(2,2,1,1).getValue();
-  var newlastnumber = targettab.getRange(targettab.getLastRow(),7,1,1).getValue();
+  var newlastnumber = targettab.getRange(targettab.getLastRow(),8,1,1).getValue();
   var workingformula = ('=IF(R[-1]C[-6] <> RC[-6], R[-1]C+1, R[-1]C)');
-      targettab.getRange(2,7,1,1).setValue(nextnumber)
+      targettab.getRange(2,8,1,1).setValue(nextnumber)
             for ( var i = 0; i < invoicenumlastrow-2; i++){
               targettab.getRange(i+3,invoicenumlastcolumn-6,1,1).setValue(workingformula);
   }            
@@ -73,13 +66,6 @@ function menuItem1() {
 }
 
 function onEdit(e) {
-  var docid = retrieveDocId();
-  var targetSheet = SpreadsheetApp.openById(docid);
-  var targetTab = targetSheet.getSheetByName('Purchase Data');
-  var lastRow = targetTab.getLastRow();
-  var targetRow = lastRow+1;
-  var targetRange = targetTab.getRange(targetRow,1,1,13);
-  var deleteCount = 0;
   var source = SpreadsheetApp.getActive();
   var sourcesheet = source.getSheetByName('Clearing Sheet');
   var approvalsheet = source.getSheetByName('Approved Line Items');
@@ -88,18 +74,21 @@ function onEdit(e) {
   var rejectrange = rejectsheet.getRange(rejectsheet.getLastRow()+1, 1, 1, 13);
   var values = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
   var reviewcheck = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),13,1,1).getValue();
-  var statuscheck = sourcesheet.getSelection().getCurrentCell().getValue();
-  var activerow = sourcesheet.getActiveCell.getRow();
-      // Approved condition moves active row to corresponding invoicinging sheet. IMPORTANT A1Notation moves row to corresponding row of target sheet
-      if (statuscheck == "Approved" && reviewcheck == "false") {
-        deleteCount++;
-        var approvedrange = sourcesheet.getRange(activerow,1,1,13).getA1Notation();
-        targetTab.getRange(approvedrange).setValues(values);
-        var approvedvalues = sourcesheet.getRange(activerow,1,1,13).getValues();
-        approvalrange.setValues(approvedvalues);
-
+  var statuscheck = sourcesheet.getRange(source.getSelection().getCurrentCell().getRow(),14,1,1).getValue();
+  var activerow = sourcesheet.getSelection().getCurrentCell().getRow();
+  var approvedrange = sourcesheet.getRange(activerow,1,1,13).getA1Notation();
+  var approvedvalues = sourcesheet.getRange(activerow,1,1,13).getValues();      
+      if (statuscheck == "Approved"){
+          var docid = retrieveDocId();
+          var targetSheet = SpreadsheetApp.openById(docid);
+          var targetTab = targetSheet.getSheetByName('Purchase Data');
+          var lastRow = targetTab.getLastRow();
+          var targetRow = lastRow+1;
+          var targetRange = targetTab.getRange(targetRow,1,1,13);
+            targetTab.getRange(approvedrange).setValues(values);    
+            approvalrange.setValues(approvedvalues);
         var ui = SpreadsheetApp.getUi();
-        var dialog = ui.alert('Click OK to open the invoice file', ui.ButtonSet.YES_NO);
+        var dialog = ui.alert('Click YES to open the invoice file', ui.ButtonSet.YES_NO);
           if (dialog == ui.Button.YES){
               var url = "https://docs.google.com/spreadsheets/d/"+docid;
               var html = "<script>window.open('" + url + "');google.script.host.close();</script>";
@@ -109,35 +98,12 @@ function onEdit(e) {
             else {
             ui.alert("Don't forget to generate the invoice.");
             }
-    
-       if (statuscheck == "Approved" && reviewcheck == "true") {
-        deleteCount++;
-        var approvedrange = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getA1Notation();
-        targetTab.getRange(approvedrange).setValues(values);
-        var approvedvalues = sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,13).getValues();
-        approvalrange.setValues(approvedvalues);
-        //Logger.log('Called from approve if statement');
-         /*if (deleteCount < 2) {sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());}
-        Logger.log('Row number is ' + sourcesheet.getSelection().getCurrentCell().getRow());*/
-        var ui = SpreadsheetApp.getUi();
-        var dialog = ui.alert('Flagged for review.','After creating this invoice it must first be sent to Tom and Sebastian for approval. Click OK to open the invoice document.', ui.ButtonSet.YES_NO);
-          if (dialog == ui.Button.YES){
-              var url = "https://docs.google.com/spreadsheets/d/"+docid;
-              var html = "<script>window.open('" + url + "');google.script.host.close();</script>";
-              var userInterface = HtmlService.createHtmlOutput(html);
-                     SpreadsheetApp.getUi().showModalDialog(userInterface, "Opening Sheet");
-            }
-            else {
-            ui.alert("Don't forget to generate the invoice.");
-            }
-    }
        //Reject condition moves the row to a rejected line items page where a new process begins
        if (statuscheck == "Rejected") {
         var rejectvalues =sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,12).getValues();
         rejectrange.setValues(rejectvalues);
-        //sourcesheet.deleteRow(sourcesheet.getSelection().getCurrentCell().getRow());
         }
-    }
+   }
 }
 function menuItem2() {
   var modal = HtmlService.createHtmlOutputFromFile('getPurchaseData')
@@ -145,7 +111,23 @@ function menuItem2() {
       .setHeight(115);    
   SpreadsheetApp.getUi().showModalDialog(modal, 'Purchase and Returns Month');
 }  
-
+function cleanRows(){
+var workingSheet = SpreadsheetApp.getActive();
+var clearingSheet = workingSheet.getSheetByName('Clearing Sheet');
+var clearingTest = clearingSheet.getRange(clearingSheet.getSelection().getCurrentCell().getRow(),14,1,1).getValue();
+var clearingTest2 = clearingSheet.getRange(clearingSheet.getSelection().getCurrentCell().getRow(),3,1,1).getValue();
+var deleteRow = clearingSheet.getSelection().getCurrentCell().getRow();
+var rejectionSheet = workingSheet.getSheetByName('Rejected Line Items');
+var rejectionTest = rejectionSheet.getRange(rejectionSheet.getLastRow(),3,1,1).getValue();
+var approvalSheet = workingSheet.getSheetByName('Approved Line Items');
+var approvalTest = approvalSheet.getRange(approvalSheet.getLastRow(),3,1,1).getValue();
+  if (clearingTest == 'Approved' && clearingTest2 == approvalTest){
+  clearingSheet.deleteRow(deleteRow);
+  }
+  else if (clearingTest == 'Rejected' && clearingTest2 == rejectionTest){
+  clearingSheet.deleteRow(deleteRow);
+  }
+}
 function logTransactionMonth(){
   var transactionmonth = SpreadsheetApp.getActive().getSheetByName('Invoice Numbers').getRange(3,2,1,1).getValue();
   var monthpurchases = (transactionmonth + ' Purchases');
@@ -187,36 +169,26 @@ function mergeTransactionData(){
   var returnslastrow = returnsdata.getLastRow();
   var returnslastcolumn = returnsdata.getLastColumn();
   var returnssearchrange = returnstab.getRange(1,1,returnslastrow, returnslastcolumn);   
-      salestab.insertColumnBefore(4);
-      returnstab.insertColumnBefore(4);
-      for ( var i = 0; i < saleslastrow; i++){
-          var salesuniqueid = ("=concatenate(RC[-3], RC[-2], RC[3])");
-              salestab.getRange(i+2,saleslastcolumn-2,1,1).setValue(salesuniqueid);  
-  }
-      for ( var i = 0; i < returnslastrow; i++){
-          var returnsuniqueid = ("=concatenate(RC[-3], RC[-2], RC[3])");
-              returnstab.getRange(i+2,returnslastcolumn-2,1,1).setValue(returnsuniqueid);  
-  }
   var clearingtab = itemsheet.getSheetByName('Clearing Sheet');
   var clearingdata = clearingtab.getDataRange();
   var clearinglastrow = clearingdata.getLastRow();
   var clearinglastcolumn = clearingdata.getLastColumn();
       for ( var i = 0; i < clearinglastrow-1; i++){    
-          var salescount = ("=iferror(vlookup(RC[-1],SalesData!D:F,2,FALSE),0)");
-          var salesamount = ("=iferror(vlookup(RC[-2],SalesData!D:F,3,FALSE),0)");
-          var returnscount = ("=iferror(vlookup(RC[-3],ReturnsData!D:F,2,FALSE),0)");
-          var returnsamount = ("=iferror(vlookup(RC[-4],ReturnsData!D:F,3,FALSE),0)");
-          var reviewflag = ("=iferror(vlookup(RC[-5],SalesData!D:G,5,FALSE),0)");
-              clearingtab.getRange(i+2,clearinglastcolumn-5,1,1).setValue(reviewflag);
-              clearingtab.getRange(i+2,clearinglastcolumn-4,1,1).setValue(salescount);
-              clearingtab.getRange(i+2,clearinglastcolumn-3,1,1).setValue(salesamount);
-              clearingtab.getRange(i+2,clearinglastcolumn-2,1,1).setValue(returnscount);
-              clearingtab.getRange(i+2,clearinglastcolumn-1,1,1).setValue(returnsamount);
+          var salescount = ("=iferror(vlookup(RC[-6],SalesData!B:G,3,FALSE),0)");
+          var salesamount = ("=iferror(vlookup(RC[-7],SalesData!B:G,4,FALSE),0)");
+          var returnscount = ("=iferror(vlookup(RC[-8],ReturnsData!B:F,3,FALSE),0)");
+          var returnsamount = ("=iferror(vlookup(RC[-9],ReturnsData!B:F,4,FALSE),0)");
+          var reviewflag = ("=iferror(vlookup(RC[-10],SalesData!B:G,6,FALSE),0)");
+              clearingtab.getRange(i+2,13,1,1).setValue(reviewflag);
+              clearingtab.getRange(i+2,9,1,1).setValue(salescount);
+              clearingtab.getRange(i+2,10,1,1).setValue(salesamount);
+              clearingtab.getRange(i+2,11,1,1).setValue(returnscount);
+              clearingtab.getRange(i+2,12,1,1).setValue(returnsamount);
   }   
   
   var destinvoicenumber = itemsheet.getSheetByName('Invoice Numbers');
   var destlastnumber = destinvoicenumber.getRange(1,2,1,1);
-  var lastinvoicenumber = clearingtab.getRange(clearingtab.getLastRow(),7,1,1).getValue();
+  var lastinvoicenumber = clearingtab.getRange(clearingtab.getLastRow(),8,1,1).getValue();
     destlastnumber.setValue(lastinvoicenumber);
     menuItem3();
 }

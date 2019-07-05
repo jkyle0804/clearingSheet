@@ -1,3 +1,5 @@
+var ui = SpreadsheetApp.getUi();
+
 function onOpen(e) {
 //Add custom menu to the active sheet
   var menu = SpreadsheetApp.getUi();
@@ -87,7 +89,7 @@ function onEdit(e) {
           var targetRange = targetTab.getRange(targetRow,1,1,13);
             targetTab.getRange(approvedrange).setValues(values);    
             approvalrange.setValues(approvedvalues);
-        var ui = SpreadsheetApp.getUi();
+        
         var dialog = ui.alert('Click YES to open the invoice file', ui.ButtonSet.YES_NO);
           if (dialog == ui.Button.YES){
               var url = "https://docs.google.com/spreadsheets/d/"+docid;

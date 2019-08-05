@@ -1,13 +1,8 @@
 var ui = SpreadsheetApp.getUi();
 
-function onOpen(e) {
-//Add custom menu to the active sheet
-  var menu = SpreadsheetApp.getUi();
-  var modal = HtmlService.createHtmlOutputFromFile('getInvoiceNumber')
-      .setWidth(350)
-      .setHeight(85);
-  var dialog = menu.showModalDialog(modal, 'Enter Starting Invoice Number');    
-      menu.createMenu('Billing')
+function onOpen(e) {  
+      ui.createMenu('Billing')
+      .addItem('Set Invoice Number', 'setNumber')
       .addItem('Prepare Sheet', 'menuItem1')
       .addItem('Import Transaction Data', 'menuItem2')
       .addItem('Begin Approvals', 'menuItem3')
@@ -17,6 +12,13 @@ function getInvoiceNumber(invoicenumber){
   var beginningnumber = invoicenumber;
   var numberrange = SpreadsheetApp.getActive().getSheetByName('Invoice Numbers').getRange(2,2,1,1);
   numberrange.setValue(beginningnumber);
+}
+
+function setNumber(){
+  var modal = HtmlService.createHtmlOutputFromFile('getInvoiceNumber')
+      .setWidth(350)
+      .setHeight(85);
+  var dialog = ui.showModalDialog(modal, 'Enter Starting Invoice Number');
 }
 
 // Add row banding for visibility,four columns to recieve purchase and return data, and validation column in last column for clearing function
@@ -69,6 +71,7 @@ function menuItem1() {
 
 function onEdit(e) {
   var source = SpreadsheetApp.getActive();
+  var newUi = SpreadsheetApp.getUi();
   var sourcesheet = source.getSheetByName('Clearing Sheet');
   var approvalsheet = source.getSheetByName('Approved Line Items');
   var approvalrange = approvalsheet.getRange(approvalsheet.getLastRow()+1,1,1,13);
@@ -87,19 +90,12 @@ function onEdit(e) {
           var lastRow = targetTab.getLastRow();
           var targetRow = lastRow+1;
           var targetRange = targetTab.getRange(targetRow,1,1,13);
+          var url = "https://docs.google.com/spreadsheets/d/"+docid;
+          var html = "<script>window.open('" + url + "');google.script.host.close();</script>";
+          var userInterface = HtmlService.createHtmlOutput(html);
             targetTab.getRange(approvedrange).setValues(values);    
             approvalrange.setValues(approvedvalues);
-        
-        var dialog = ui.alert('Click YES to open the invoice file', ui.ButtonSet.YES_NO);
-          if (dialog == ui.Button.YES){
-              var url = "https://docs.google.com/spreadsheets/d/"+docid;
-              var html = "<script>window.open('" + url + "');google.script.host.close();</script>";
-              var userInterface = HtmlService.createHtmlOutput(html);
-                     SpreadsheetApp.getUi().showModalDialog(userInterface, "Opening Sheet");
-            }
-            else {
-            ui.alert("Don't forget to generate the invoice.");
-            }
+            newUi.showModalDialog(userInterface, "Opening Sheet");
        //Reject condition moves the row to a rejected line items page where a new process begins
        if (statuscheck == "Rejected") {
         var rejectvalues =sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,12).getValues();
@@ -226,7 +222,6 @@ function ActiveCompanyNumber() {
       }
     }
   }
-Logger.log(i+1);
 } 
   
 // Retrieves the ID of the invoicing document related to the active company from above and sends it to onEdit function on prepareSheet.gs  
@@ -237,6 +232,5 @@ function retrieveDocId(){
   var masterrange = mastertab.getRange(masterrownum, 6,1,1);
   var billingDocId = masterrange.getValue();
   var routingId = billingDocId;
-  //Logger.log('billingDocId is ' + routingId);
   return routingId;
 }

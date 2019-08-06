@@ -1,7 +1,7 @@
-var ui = SpreadsheetApp.getUi();
-
-function onOpen(e) {  
-      ui.createMenu('Billing')
+function onOpen(e) {
+  var html = HtmlService(); 
+  var ui = SpreadsheetApp.getUi()
+      .createMenu('Billing')
       .addItem('Set Invoice Number', 'setNumber')
       .addItem('Prepare Sheet', 'menuItem1')
       .addItem('Import Transaction Data', 'menuItem2')
@@ -69,9 +69,8 @@ function menuItem1() {
       logTransactionMonth();        
 }
 
-function onEdit(e) {
+function itemApproval() {
   var source = SpreadsheetApp.getActive();
-  var newUi = SpreadsheetApp.getUi();
   var sourcesheet = source.getSheetByName('Clearing Sheet');
   var approvalsheet = source.getSheetByName('Approved Line Items');
   var approvalrange = approvalsheet.getRange(approvalsheet.getLastRow()+1,1,1,13);
@@ -95,7 +94,7 @@ function onEdit(e) {
           var userInterface = HtmlService.createHtmlOutput(html);
             targetTab.getRange(approvedrange).setValues(values);    
             approvalrange.setValues(approvedvalues);
-            newUi.showModalDialog(userInterface, "Opening Sheet");
+            SpreadsheetApp.getUi().showModalDialog(userInterface, "Opening Sheet");
        //Reject condition moves the row to a rejected line items page where a new process begins
        if (statuscheck == "Rejected") {
         var rejectvalues =sourcesheet.getRange(sourcesheet.getSelection().getCurrentCell().getRow(),1,1,12).getValues();
